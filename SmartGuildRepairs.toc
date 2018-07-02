@@ -1,0 +1,9 @@
+## Interface: 80000
+## Author: Sanex (Arathor EU)
+## Title: |cffff0000Smart|rGuildRepairs
+## Version: @project-version@
+## Notes: SmartGuildRepairs calculates optimal way to do repairs for you to get maximum benefit from guild funded repairs.
+## SavedVariables: SmartGuildRepairsSettings
+
+SmartGuildRepairsStrings.lua
+SmartGuildRepairs.lua
