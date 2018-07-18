@@ -1,1 +1,5 @@
 package-as: SmartGuildRepairs
+
+ignore:
+    - LICENSE.md
+    - README.md
