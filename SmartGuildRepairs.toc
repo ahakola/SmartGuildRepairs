@@ -1,4 +1,4 @@
-## Interface: 90001
+## Interface: 90100
 ## Author: Sanex (Arathor EU)
 ## Title: |cffff0000Smart|rGuildRepairs
 ## Version: @project-version@

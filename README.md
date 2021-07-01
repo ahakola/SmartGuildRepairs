@@ -1,3 +1,5 @@
+![Release](https://github.com/ahakola/SmartGuildRepairs/actions/workflows/release.yml/badge.svg)
+
 # SmartGuildRepairs
 
 This tool automaticly repairs with guild funds if you have enough daily withdraws left or calculate the best solution for you to repair with your own money to make the best use for your guild withdraws.
