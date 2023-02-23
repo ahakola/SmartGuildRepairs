@@ -67,9 +67,6 @@ local function Print(text, ...)
 	end
 end
 
-local repairTip = CreateFrame("GameTooltip", "RepairScanningTooltip", nil, "GameTooltipTemplate")
-repairTip:SetOwner(UIParent, "ANCHOR_NONE")
-
 local function formatMoney(money) -- Color codes from Tekkub @ https://gist.github.com/tekkub/44479
 	local gold, silver, copper = math.floor(money / 10000), math.floor((money / 100) % 100), money % 100
 
@@ -144,14 +141,16 @@ local function optimizeRepairs(guildMoney)
 
 	for i = 1, 17 do -- Go through equiped items and record repair costs
 		if breakableSlots[i] then -- Skip slots with items that cannot break
-			local hasItem, _, slotCost = repairTip:SetInventoryItem("Player", i)
-			if hasItem and slotCost then
-				costTable[i] = slotCost
-				if slotCost > 0 then -- Count items needing repair
-					countBroken = countBroken + 1
-				end
-			else
-				costTable[i] = 0
+			local slotCost = 0
+			local hasItem = C_TooltipInfo.GetInventoryItem("Player", i)
+			if hasItem then
+				TooltipUtil.SurfaceArgs(hasItem)
+				slotCost = hasItem.repairCost
+			end
+			
+			costTable[i] = slotCost
+			if slotCost and slotCost > 0 then -- Count items needing repair
+				countBroken = countBroken + 1
 			end
 		else
 			costTable[i] = 0
@@ -201,8 +200,8 @@ f:SetScript("OnEvent", function(self, event, ...)
 		db = SmartGuildRepairsSettings
 
 		self:RegisterEvent("PLAYER_LOGIN")
-		self:RegisterEvent("MERCHANT_SHOW")
-		self:RegisterEvent("MERCHANT_CLOSED")
+		self:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_SHOW")
+		self:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_HIDE")
 
 	elseif event == "PLAYER_LOGIN" then
 		local function _stringFactory(parent)
@@ -235,7 +234,8 @@ f:SetScript("OnEvent", function(self, event, ...)
 		f[16] = _stringFactory(_G.CharacterMainHandSlot)
 		f[17] = _stringFactory(_G.CharacterSecondaryHandSlot)
 
-	elseif event == "MERCHANT_SHOW" then
+	elseif event == "PLAYER_INTERACTION_MANAGER_FRAME_SHOW" then
+		if (...) ~= Enum.PlayerInteractionType.Merchant then return end -- 5
 		if not CanMerchantRepair() then return end
 		if not (IsInGuild() and CanGuildBankRepair()) then return end
 
@@ -250,7 +250,7 @@ f:SetScript("OnEvent", function(self, event, ...)
 				if db.verboselevel >= 1 then
 					Print(L.RepairedWithGuildMoney, formatMoney(totalCost), formatMoney(guildMoney - totalCost))
 				end
-			else
+			elseif guildMoney > 0 then
 				local solution, optimalCost, repairThese, repairTable = optimizeRepairs(guildMoney)
 
 				if solution then
@@ -278,6 +278,8 @@ f:SetScript("OnEvent", function(self, event, ...)
 				if db.verboselevel >= 1 then
 					Print(L.RepairTheseManually, repairThese)
 				end
+			elseif db.verboselevel == 2 then
+				Print(L.NoSolutions)
 			end
 		else
 			if db.verboselevel >= 1 then
@@ -285,7 +287,8 @@ f:SetScript("OnEvent", function(self, event, ...)
 			end
 		end
 
-	elseif event == "MERCHANT_CLOSED" then
+	elseif event == "PLAYER_INTERACTION_MANAGER_FRAME_HIDE" then
+		if (...) ~= Enum.PlayerInteractionType.Merchant then return end -- 5
 		if not registered then return end
 
 		Debug("UnregisterEvent")
@@ -303,7 +306,13 @@ f:SetScript("OnEvent", function(self, event, ...)
 
 		for i = 1, 17 do
 			if breakableSlots[i] and f[i]:GetText() ~= "" then
-				local hasItem, _, slotCost = repairTip:SetInventoryItem("Player", i)
+				local slotCost = 0
+				local hasItem = C_TooltipInfo.GetInventoryItem("Player", i)
+				if hasItem then
+					TooltipUtil.SurfaceArgs(hasItem)
+					slotCost = hasItem.repairCost
+				end
+
 				if not slotCost or slotCost == 0 then
 					f[i]:SetText("")
 				end
