@@ -144,7 +144,6 @@ local function optimizeRepairs(guildMoney)
 			local slotCost = 0
 			local hasItem = C_TooltipInfo.GetInventoryItem("Player", i)
 			if hasItem then
-				TooltipUtil.SurfaceArgs(hasItem)
 				slotCost = hasItem.repairCost
 			end
 			
@@ -309,7 +308,6 @@ f:SetScript("OnEvent", function(self, event, ...)
 				local slotCost = 0
 				local hasItem = C_TooltipInfo.GetInventoryItem("Player", i)
 				if hasItem then
-					TooltipUtil.SurfaceArgs(hasItem)
 					slotCost = hasItem.repairCost
 				end
 
