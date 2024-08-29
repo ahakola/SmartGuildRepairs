@@ -5,6 +5,12 @@
 	Sanex @ EU-Arathor / ahak @ Curseforge
 ----------------------------------------------------------------------------]]--
 
+-- GLOBALS: DEBUG_CHAT_FRAME, SLASH_SMARTGUILDREPAIRS1, SLASH_SMARTGUILDREPAIRS2, SmartGuildRepairsSettings
+
+-- GLOBALS: _G, C_TooltipInfo, CanGuildBankRepair, CanMerchantRepair, ChatFrame1, CreateFrame, DEFAULT_CHAT_FRAME, Enum
+-- GLOBALS: format, GetGuildBankMoney, GetGuildBankWithdrawMoney, GetRepairAllCost, IsInGuild, math, pairs
+-- GLOBALS: RepairAllItems, SlashCmdList, string, strjoin, table, tostringall, type, UIParent
+
 local ADDON_NAME, ns = ...
 --local f = CreateFrame("Frame")
 local f = CreateFrame("Frame", nil, _G.PaperDollFrame)
@@ -81,7 +87,13 @@ local function formatMoney(money) -- Color codes from Tekkub @ https://gist.gith
 	return ret
 end
 
-local function optimizeRepairs(guildMoney)
+local repairTip
+if not C_TooltipInfo then
+	repairTip = CreateFrame("GameTooltip", "RepairScanningTooltip", nil, "GameTooltipTemplate")
+	repairTip:SetOwner(UIParent, "ANCHOR_NONE")
+end
+
+local function optimizeRepairs(guildMoney, isTestRun)
 	local function knapSolveFast(v, i, aW, m)
 		--[[ This is just modified 0/1 Knapsack Problem solver function		]]
 		numcalls = numcalls + 1
@@ -142,11 +154,19 @@ local function optimizeRepairs(guildMoney)
 	for i = 1, 17 do -- Go through equiped items and record repair costs
 		if breakableSlots[i] then -- Skip slots with items that cannot break
 			local slotCost = 0
-			local hasItem = C_TooltipInfo.GetInventoryItem("Player", i)
-			if hasItem then
-				slotCost = hasItem.repairCost
+			if C_TooltipInfo then
+				local hasItem = C_TooltipInfo.GetInventoryItem("Player", i)
+				if hasItem then
+					slotCost = hasItem.repairCost
+				end
+			else
+				local _, _, slotCost = repairTip:SetInventoryItem("Player", i)
 			end
-			
+
+			if isTestRun then
+				slotCost = math.random(0, 100000)
+			end
+
 			costTable[i] = slotCost
 			if slotCost and slotCost > 0 then -- Count items needing repair
 				countBroken = countBroken + 1
@@ -348,6 +368,14 @@ SlashCmdList.SMARTGUILDREPAIRS = function(...)
 	elseif (...) == "debug" then
 		db.debugmode = not db.debugmode
 		Print("Debug:", (db.debugmode and "|cff00ff00true|r" or "|cffff0000false|r"))
+	elseif (...) == "test" then
+		Print("Test:")
+		local testMoney = _G.GetMoney()
+		while testMoney > 10000 do
+			local solution, optimalCost, repairThese, repairTable = optimizeRepairs(testMoney, true)
+			Print("\nSolution: %s (%s) \noptimalCost: %s (%d%%) \nrepairThese: %s", (solution) and "True" or "False", formatMoney(testMoney), formatMoney(optimalCost), math.floor((optimalCost / testMoney) * 100 + 0.5), repairThese)
+			testMoney = math.floor(testMoney / 10)
+		end
 	else
 		Print(L.Help, L.psilent, L.pnormal, L.pfull)
 		Print(L.VerboseLevelIs, (db.verboselevel == 0 and L.Silent or (db.verboselevel == 1 and L.Normal or L.Full)))
