@@ -1,4 +1,4 @@
-## Interface: 40402, 50500, 110107
+## Interface: 40402, 50500, 110200
 ## Author: Sanex (Arathor EU)
 ## Title: |cffff0000Smart|rGuildRepairs
 ## Version: @project-version@
