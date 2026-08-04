@@ -1,2 +1,2 @@
 
-Copyright (C) 2017 ahakola
+Copyright (C) 2017-2026 ahakola
