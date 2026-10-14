@@ -1,4 +1,4 @@
-## Interface: 120100, 50504, 38002, 20506
+## Interface: 120105, 50504, 38002, 20506
 ## Author: Sanex (Arathor EU)
 ## Title: |cffff0000Smart|rGuildRepairs
 ## Version: @project-version@
